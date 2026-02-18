@@ -1,5 +1,6 @@
 """Chat service for managing conversations."""
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy.orm import Session
 
