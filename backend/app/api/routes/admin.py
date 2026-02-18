@@ -90,9 +90,11 @@ def list_documents(
         doc_response.num_chunks = num_chunks
         doc_responses.append(doc_response)
 
-    total = db.query(db.query(Chunk).statement).count()
+    from app.db.models import Document
 
-    return DocumentListResponse(documents=doc_responses, total=len(documents))
+    total = db.query(Document).count()
+
+    return DocumentListResponse(documents=doc_responses, total=total)
 
 
 @router.post("/reindex", response_model=ReindexResponse)
