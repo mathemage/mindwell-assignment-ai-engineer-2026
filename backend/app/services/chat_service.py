@@ -18,7 +18,7 @@ class ChatService:
         self.db = db
         self.orchestrator = ChatOrchestrator(db)
 
-    def process_message(self, user_id: int, message: str) -> dict[str, any]:
+    def process_message(self, user_id: int, message: str) -> dict[str, Any]:
         """Process a chat message."""
         logger.info("Processing chat message", user_id=user_id, message_length=len(message))
 
