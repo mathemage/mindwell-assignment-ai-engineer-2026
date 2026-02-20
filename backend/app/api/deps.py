@@ -35,8 +35,15 @@ def get_current_user(
 
         return user
 
-    except AuthenticationError as e:
+    except (AuthenticationError, ValueError, TypeError) as e:
         logger.warning("Authentication failed", error=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except Exception as e:
+        logger.error("Unexpected error during authentication", error=str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",

@@ -108,14 +108,25 @@ class OpenAIProvider(LLMProvider):
                 num_messages=len(messages),
             )
 
-            # Add JSON format instruction to the last message
+            # Prepend JSON format instruction as system message if not already present
+            # or incorporate into user message to avoid appending after user messages
             messages_with_format = messages.copy()
-            messages_with_format.append(
-                {
+            
+            # Check if there's already a system message
+            has_system = any(msg.get("role") == "system" for msg in messages_with_format)
+            
+            if has_system:
+                # Add instruction to the existing system message
+                for msg in messages_with_format:
+                    if msg.get("role") == "system":
+                        msg["content"] += f"\n\nRespond with valid JSON matching this schema: {json.dumps(response_format)}"
+                        break
+            else:
+                # Prepend as first system message
+                messages_with_format.insert(0, {
                     "role": "system",
                     "content": f"Respond with valid JSON matching this schema: {json.dumps(response_format)}",
-                }
-            )
+                })
 
             response = self.client.chat.completions.create(
                 model=self.model,
