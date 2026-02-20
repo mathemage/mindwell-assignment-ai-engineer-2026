@@ -1,0 +1,186 @@
+<mxfile host="app.diagrams.net" modified="2026-02-20T17:00:00.000Z" agent="Mindwell AI" version="21.0.0" type="device">
+  <diagram id="mindwell-clinical-supervisor" name="Mindwell AI - Clinical Supervisor Architecture">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ===== VPC Boundary ===== -->
+        <mxCell id="vpc" value="AWS / Azure / GCP VPC (Strictly Isolated)" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="60" width="1520" height="1040" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Therapist & Patient Actors ===== -->
+        <mxCell id="patient" value="Patient&#xa;(Journal / Homework)" style="shape=mxgraph.basic.person;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontStyle=1;fontSize=11;" vertex="1" parent="vpc">
+          <mxGeometry x="40" y="140" width="80" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="therapist" value="Therapist&#xa;(Review &amp; Approve)" style="shape=mxgraph.basic.person;fillColor=#d5e8d4;strokeColor=#82b366;fontColor=#333333;fontStyle=1;fontSize=11;" vertex="1" parent="vpc">
+          <mxGeometry x="40" y="420" width="80" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- ===== API Gateway ===== -->
+        <mxCell id="api_gw" value="FastAPI Backend&#xa;(Auth + Chat + Admin APIs)" style="rounded=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=11;" vertex="1" parent="vpc">
+          <mxGeometry x="200" y="200" width="220" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Auth Service ===== -->
+        <mxCell id="auth" value="JWT Auth + RBAC&#xa;(bcrypt passwords)" style="rounded=1;whiteSpace=wrap;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="vpc">
+          <mxGeometry x="200" y="320" width="160" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ===== PII / Safety Pre-processor ===== -->
+        <mxCell id="pii" value="PII Redaction&#xa;&amp; Safety Pre-check" style="rounded=1;whiteSpace=wrap;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=10;" vertex="1" parent="vpc">
+          <mxGeometry x="480" y="160" width="180" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ===== ChatOrchestrator ===== -->
+        <mxCell id="orch" value="ChatOrchestrator&#xa;(Multi-Agent Pipeline)" style="swimlane;startSize=28;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=11;" vertex="1" parent="vpc">
+          <mxGeometry x="480" y="260" width="600" height="350" as="geometry" />
+        </mxCell>
+
+        <!-- Agents inside orchestrator -->
+        <mxCell id="safety_agent" value="SafetyAgent&#xa;(Input + Output Check)" style="rounded=1;whiteSpace=wrap;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="orch">
+          <mxGeometry x="20" y="50" width="170" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="retriever" value="RetrieverAgent&#xa;(Vector Similarity Search)" style="rounded=1;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="orch">
+          <mxGeometry x="220" y="50" width="170" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="draft" value="DraftAgent&#xa;(LLM Response Generation)" style="rounded=1;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="orch">
+          <mxGeometry x="220" y="160" width="170" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="finalizer" value="FinalizerAgent&#xa;(Citations + Metadata)" style="rounded=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="orch">
+          <mxGeometry x="410" y="160" width="170" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Flow arrows inside orchestrator -->
+        <mxCell id="e_safe_to_retr" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="safety_agent" target="retriever" parent="orch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_retr_to_draft" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="retriever" target="draft" parent="orch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_draft_to_final" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="draft" target="finalizer" parent="orch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Pipeline label -->
+        <mxCell id="pipeline_label" value="1. Safety Check → 2. Retrieve → 3. Draft → 4. Safety Check → 5. Finalize" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=9;fontStyle=2;" vertex="1" parent="orch">
+          <mxGeometry x="20" y="290" width="560" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ===== LLM Provider ===== -->
+        <mxCell id="llm" value="LLM Provider&#xa;(OpenAI-Compatible / Self-Hosted)&#xa;GPT-4 / Ollama / vLLM" style="rounded=1;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=10;" vertex="1" parent="vpc">
+          <mxGeometry x="760" y="200" width="220" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ===== PostgreSQL + pgvector ===== -->
+        <mxCell id="pgvector" value="PostgreSQL 16 + pgvector&#xa;(Conversations · Embeddings · Safety Logs)" style="shape=cylinder3;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=10;" vertex="1" parent="vpc">
+          <mxGeometry x="480" y="680" width="220" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ===== CBT Knowledge Base ===== -->
+        <mxCell id="kb" value="CBT Knowledge Base&#xa;(Chunks + Embeddings)" style="shape=cylinder3;whiteSpace=wrap;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=10;" vertex="1" parent="vpc">
+          <mxGeometry x="760" y="680" width="220" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Long-Term Patient Memory ===== -->
+        <mxCell id="memory" value="Long-Term Patient Memory&#xa;(Patient Facts per Tenant)" style="shape=cylinder3;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=10;" vertex="1" parent="vpc">
+          <mxGeometry x="200" y="680" width="220" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Observability Stack ===== -->
+        <mxCell id="obs" value="Observability Stack&#xa;(Self-Hosted)" style="swimlane;startSize=28;fillColor=#f5f5f5;strokeColor=#666666;fontStyle=1;fontSize=11;" vertex="1" parent="vpc">
+          <mxGeometry x="1120" y="260" width="360" height="280" as="geometry" />
+        </mxCell>
+        <mxCell id="otel" value="OpenTelemetry Collector" style="rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="obs">
+          <mxGeometry x="20" y="50" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="jaeger" value="Jaeger (Distributed Tracing)" style="rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="obs">
+          <mxGeometry x="20" y="110" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="prometheus" value="Prometheus + Grafana" style="rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="obs">
+          <mxGeometry x="20" y="170" width="200" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="structlog" value="structlog (JSON Logs)" style="rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="obs">
+          <mxGeometry x="20" y="230" width="200" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Therapist Approval UI ===== -->
+        <mxCell id="therapist_ui" value="Therapist Review UI&#xa;(Draft Response + Approve / Edit)" style="rounded=1;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=11;" vertex="1" parent="vpc">
+          <mxGeometry x="200" y="440" width="220" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Edges ===== -->
+        <!-- Patient → API GW -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="patient" target="api_gw" parent="vpc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- API GW → PII -->
+        <mxCell id="e2" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="api_gw" target="pii" parent="vpc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- API GW → Auth -->
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="api_gw" target="auth" parent="vpc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- PII → Orchestrator -->
+        <mxCell id="e4" value="Redacted Message" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="pii" target="orch" parent="vpc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Orchestrator → LLM -->
+        <mxCell id="e5" value="Prompt + Context" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="orch" target="llm" parent="vpc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Retriever → pgvector -->
+        <mxCell id="e6" value="Cosine Similarity" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="retriever" target="pgvector" parent="vpc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Retriever → KB -->
+        <mxCell id="e7" value="Top-k Chunks" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="retriever" target="kb" parent="vpc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Orchestrator → Long-Term Memory -->
+        <mxCell id="e8" value="Patient Facts" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="orch" target="memory" parent="vpc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Orchestrator → Therapist UI -->
+        <mxCell id="e9" value="Draft Response" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="orch" target="therapist_ui" parent="vpc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Therapist UI → Therapist -->
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="therapist_ui" target="therapist" parent="vpc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- API GW → pgvector (store messages) -->
+        <mxCell id="e11" value="Store Messages" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="api_gw" target="pgvector" parent="vpc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Orchestrator → Observability -->
+        <mxCell id="e12" value="Traces + Metrics + Logs" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="orch" target="obs" parent="vpc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Legend ===== -->
+        <mxCell id="legend_title" value="Legend" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=12;fontStyle=1;" vertex="1" parent="vpc">
+          <mxGeometry x="1120" y="680" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1" value="API / Orchestration" style="rounded=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="vpc">
+          <mxGeometry x="1120" y="720" width="160" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2" value="Safety / Privacy Layer" style="rounded=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="vpc">
+          <mxGeometry x="1120" y="760" width="160" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3" value="Data Stores" style="shape=cylinder3;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="vpc">
+          <mxGeometry x="1120" y="800" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4" value="Agent (Pipeline Step)" style="rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="vpc">
+          <mxGeometry x="1120" y="850" width="160" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="leg5" value="Observability / Infra" style="rounded=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="vpc">
+          <mxGeometry x="1120" y="890" width="160" height="30" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
