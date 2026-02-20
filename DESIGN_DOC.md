@@ -30,7 +30,7 @@ The architecture is built around five principles:
 | **Data Sovereignty** | All components run inside a single VPC; no patient data is sent to public SaaS |
 | **Long-Term Memory** | Patient-level vector memory stored in PostgreSQL with `pgvector`; persists across sessions |
 | **Lean & Open-Source** | Self-hosted PostgreSQL, pgvector, OpenTelemetry stack — no expensive enterprise licences |
-| **Therapist in the Loop** | The LLM _drafts_; the therapist _approves_; the system _never_ autonomously delivers clinical responses |
+| **Therapist in the Loop** | The LLM _drafts_; the therapist _approves_; the system _never_ autonomously delivers clinical responses (Therapist Review UI is a planned component) |
 
 The full system diagram is in [`diagrams/architecture.drawio`](diagrams/architecture.drawio).
 
@@ -69,7 +69,7 @@ Patient submits journal / homework
 │  └───────────────┬─────────────────┘     │
 │                  │ Draft response         │
 │  ┌───────────────▼─────────────────┐     │
-│  │  Therapist Review UI            │     │
+│  │  Therapist Review UI  [Planned] │     │
 │  │  (Approve / Edit / Reject)      │     │
 │  └─────────────────────────────────┘     │
 │                                          │
@@ -165,14 +165,16 @@ Code reference: `backend/app/core/security.py` (PII detection), `backend/app/ser
 
 ### B.2 Self-Hosted Tracing
 
-**Choice: OpenTelemetry + Jaeger (self-hosted)**
+**Recommended stack: OpenTelemetry + Jaeger (self-hosted)**
+
+> **Implementation status**: `structlog` structured JSON logging is implemented today (`backend/app/core/logging.py`). The OpenTelemetry Collector, Jaeger, and Prometheus/Grafana components are **planned** — they are not yet in the `docker-compose.yml` or codebase. The table below describes the target architecture.
 
 | Tool | Role | Why self-hosted? |
 |---|---|---|
 | **OpenTelemetry Collector** | Receives traces/metrics/logs from the FastAPI app via OTLP | Vendor-neutral; works inside VPC |
 | **Jaeger** | Distributed trace storage and UI | Apache 2.0 licence; Docker Compose deployable; no data leaves VPC |
 | **Prometheus + Grafana** | Metrics (latency, error rate, safety decision distribution) | De-facto open-source standard; self-hosted |
-| **structlog** | Structured JSON logging with automatic PII redaction | Python-native; logs stay on the host |
+| **structlog** | Structured JSON logging with automatic PII redaction (**implemented**) | Python-native; logs stay on the host |
 
 **Debugging a hallucination session:**
 
@@ -196,7 +198,7 @@ Code reference: `backend/app/core/security.py` (PII detection), `backend/app/ser
 | **LLM tone embedding drift** | Embed each LLM response; compute centroid distance from a "golden" CBT corpus | Cosine distance > 0.15 from baseline |
 | **Therapist edit rate** | % of draft responses the therapist modifies before approving | Rising edit rate signals degrading quality |
 
-The **tone embedding drift** metric is the most powerful: we maintain a frozen set of ~200 therapist-approved "gold" responses. Each new response is embedded and its cosine similarity to the gold centroid is logged to Prometheus. A Grafana alert fires when a 7-day rolling average drifts below a threshold, triggering a prompt/model review.
+The **tone embedding drift** metric is the most powerful: we maintain a frozen set of ~200 therapist-approved "gold" responses. Each new response is embedded and its cosine similarity to the gold centroid is logged. A monitoring alert fires when a 7-day rolling average drifts below a threshold, triggering a prompt/model review. (This requires Prometheus + Grafana to be deployed, which is part of the planned observability stack.)
 
 ---
 
@@ -204,13 +206,13 @@ The **tone embedding drift** metric is the most powerful: we maintain a frozen s
 
 ### C.1 Tenant Isolation — Patient A vs Patient B
 
-Isolation is enforced at **three independent layers**:
+Isolation is enforced at **three independent layers** (layer 1 is implemented; layers 2 and 3 are planned for production hardening):
 
-| Layer | Mechanism |
-|---|---|
-| **Application** | Every database query is scoped by `user_id`. The API validates the JWT token and extracts the `user_id`; all ORM queries include `WHERE conversation.user_id = :user_id`. No cross-user query is possible without a code change. |
-| **Row-Level Security (RLS)** | PostgreSQL RLS policies enforce `current_user_id = user_id` at the database level, so even a SQL injection bypass at the ORM layer cannot return another patient's rows. |
-| **Vector store** | Each `embedding` row has a foreign key to `chunk → document`. Documents uploaded by one user's therapist session are namespaced by `tenant_id`. RAG queries include a `tenant_id` filter before vector search. |
+| Layer | Mechanism | Status |
+|---|---|---|
+| **Application** | Every database query is scoped by `user_id`. The API validates the JWT token and extracts the `user_id`; all ORM queries include `WHERE conversation.user_id = :user_id`. No cross-user query is possible without a code change. | ✅ Implemented |
+| **Row-Level Security (RLS)** | PostgreSQL RLS policies (`CREATE POLICY … USING (user_id = current_setting('app.current_user_id'))`) enforce isolation at the database level, so even a SQL injection bypass at the ORM layer cannot return another patient's rows. | 🔲 Planned — not yet in migrations |
+| **Vector store scoping** | Each `embedding` row has a foreign key to `chunk → document`. In the current MVP the knowledge base is shared (CBT documents are not patient-specific), and patient conversation history is isolated by `user_id` at the conversation level. Full `tenant_id`-based document namespacing (for multi-organisation deployments) is a planned enhancement. | 🔲 Planned for multi-org |
 
 ### C.2 VPC Security — Agent Container ↔ Database Container
 
@@ -315,8 +317,8 @@ This determines: encryption-at-rest requirements, data residency (single region 
 | **Vector Store** | PostgreSQL 16 + pgvector | Self-hostable, BSD/MIT licence, zero extra DB, relational + vector in one |
 | **Embeddings** | OpenAI `text-embedding-3-small` | 1536-dim, excellent quality/cost; swappable to `sentence-transformers` |
 | **Framework** | FastAPI + Pydantic v2 | Async-ready, auto-docs, strong typing |
-| **Tracing** | OpenTelemetry + Jaeger | Self-hosted, CNCF standard, no SaaS required |
-| **Metrics** | Prometheus + Grafana | Open source, VPC-native, industry standard |
+| **Tracing** | OpenTelemetry + Jaeger | Self-hosted, CNCF standard, no SaaS required **(planned)** |
+| **Metrics** | Prometheus + Grafana | Open source, VPC-native, industry standard **(planned)** |
 | **Logging** | structlog (JSON) | Structured, PII-aware redaction built in |
 | **Auth** | JWT (HS256) + bcrypt | Simple, stateless, production-sufficient for MVP |
 | **Containerisation** | Docker + Docker Compose | Single-command local dev; Kubernetes-ready for production |
