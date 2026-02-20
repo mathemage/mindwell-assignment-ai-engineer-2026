@@ -158,6 +158,16 @@ Grounding techniques help when you feel overwhelmed or anxious.
 def seed_database() -> None:
     """Seed the database with sample data."""
     logger.info("Starting database seeding")
+    
+    settings = get_settings()
+    
+    # Prevent creating test accounts in production
+    if settings.is_production:
+        logger.error("Refusing to seed test accounts in production environment")
+        raise RuntimeError(
+            "Test accounts cannot be created in production. "
+            "Set ENVIRONMENT=development or ENVIRONMENT=staging to run seed script."
+        )
 
     db = SessionLocal()
 
@@ -165,6 +175,10 @@ def seed_database() -> None:
         # Create admin user
         admin = db.query(User).filter(User.email == "admin@mindwell.ai").first()
         if not admin:
+            logger.warning(
+                "Creating test admin account with weak password - DO NOT USE IN PRODUCTION",
+                email="admin@mindwell.ai"
+            )
             admin = User(
                 email="admin@mindwell.ai",
                 hashed_password=hash_password("admin123456"),
@@ -181,6 +195,10 @@ def seed_database() -> None:
         # Create test user
         user = db.query(User).filter(User.email == "user@example.com").first()
         if not user:
+            logger.warning(
+                "Creating test user account with weak password - DO NOT USE IN PRODUCTION",
+                email="user@example.com"
+            )
             user = User(
                 email="user@example.com",
                 hashed_password=hash_password("password123"),

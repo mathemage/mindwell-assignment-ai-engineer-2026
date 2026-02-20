@@ -163,10 +163,12 @@ jobs:
           pip install safety bandit
 
       - name: Run safety check
-        run: safety check --json || true
+        continue-on-error: true
+        run: safety check --json
 
       - name: Run bandit security linter
-        run: bandit -r app/ -f json -o bandit-report.json || true
+        continue-on-error: true
+        run: bandit -r app/ -f json -o bandit-report.json
 
       - name: Upload bandit report
         uses: actions/upload-artifact@v3

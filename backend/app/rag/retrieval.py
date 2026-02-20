@@ -70,6 +70,9 @@ def retrieve_relevant_chunks(
 
         # Perform vector similarity search using cosine similarity
         # Using 1 - cosine_distance for similarity score
+        # Format embedding as PostgreSQL array literal
+        embedding_str = "[" + ",".join(str(x) for x in query_embedding) + "]"
+        
         query_sql = text(
             """
             SELECT
@@ -93,7 +96,7 @@ def retrieve_relevant_chunks(
         result = db.execute(
             query_sql,
             {
-                "query_embedding": str(query_embedding),
+                "query_embedding": embedding_str,
                 "threshold": similarity_threshold,
                 "limit": top_k,
             },

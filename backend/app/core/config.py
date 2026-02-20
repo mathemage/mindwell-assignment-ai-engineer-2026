@@ -21,7 +21,7 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = Field(
-        default="postgresql+psycopg://mindwell:mindwell_dev_password@localhost:5432/mindwell"
+        default="postgresql+psycopg://user:password@localhost:5432/dbname"
     )
 
     # OpenAI
@@ -56,6 +56,19 @@ class Settings(BaseSettings):
     llm_temperature: float = 0.3
     llm_max_tokens: int = 1000
     llm_timeout: int = 30
+
+    # CORS Settings
+    cors_origins: str = Field(
+        default="*",
+        description="Comma-separated list of allowed CORS origins. Use * for development only."
+    )
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        """Get CORS origins as a list."""
+        if self.cors_origins == "*":
+            return ["*"]
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
     @property
     def is_production(self) -> bool:

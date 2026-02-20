@@ -53,7 +53,7 @@ class ChatService:
         self.db.flush()
 
         # Process through agent pipeline
-        response_data = self.orchestrator.process_query(message)
+        response_data = self.orchestrator.process_query(redacted_message)
 
         # Store assistant response
         assistant_message = Message(

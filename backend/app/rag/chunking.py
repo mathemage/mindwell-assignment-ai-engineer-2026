@@ -96,7 +96,7 @@ def chunk_text(content: str, chunk_size: int, chunk_overlap: int) -> list[Chunk]
 
     text_chunks = _split_by_size(content, chunk_size, chunk_overlap)
     chunks = [
-        Chunk(text, index, ChunkMetadata(start_char=index * chunk_size))
+        Chunk(text, index, ChunkMetadata())
         for index, text in enumerate(text_chunks)
     ]
 
