@@ -1,5 +1,7 @@
 # Mindwell AI - CBT Assistant MVP
 
+[![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue.svg)](https://choosealicense.com/licenses/agpl-3.0/)
+
 A production-ready MVP for Mindwell-style AI features with strong safety, privacy, and evaluation. This system provides an AI-powered chat assistant for digital Cognitive Behavioral Therapy (CBT) programs with:
 
 - 🔍 **RAG with Citations**: Answers grounded in knowledge base with source citations

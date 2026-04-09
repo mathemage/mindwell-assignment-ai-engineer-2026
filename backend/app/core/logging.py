@@ -1,9 +1,11 @@
 """Structured logging configuration."""
+
 import logging
 import sys
-from typing import Any
+from typing import Any, cast
 
 import structlog
+from structlog.stdlib import BoundLogger
 
 from app.core.config import get_settings
 
@@ -46,9 +48,9 @@ def setup_logging() -> None:
     )
 
 
-def get_logger(name: str) -> structlog.stdlib.BoundLogger:
+def get_logger(name: str) -> BoundLogger:
     """Get a logger instance."""
-    return structlog.get_logger(name)
+    return cast(BoundLogger, structlog.get_logger(name))
 
 
 def redact_sensitive_data(data: dict[str, Any]) -> dict[str, Any]:

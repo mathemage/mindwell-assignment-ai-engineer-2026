@@ -1,10 +1,12 @@
 """Seed database with sample data."""
+
 import sys
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+from app.core.config import get_settings
 from app.core.logging import get_logger, setup_logging
 from app.core.security import hash_password, pseudonymize_user_id
 from app.db.models import User
@@ -158,9 +160,9 @@ Grounding techniques help when you feel overwhelmed or anxious.
 def seed_database() -> None:
     """Seed the database with sample data."""
     logger.info("Starting database seeding")
-    
+
     settings = get_settings()
-    
+
     # Prevent creating test accounts in production
     if settings.is_production:
         logger.error("Refusing to seed test accounts in production environment")
@@ -177,7 +179,7 @@ def seed_database() -> None:
         if not admin:
             logger.warning(
                 "Creating test admin account with weak password - DO NOT USE IN PRODUCTION",
-                email="admin@mindwell.ai"
+                email="admin@mindwell.ai",
             )
             admin = User(
                 email="admin@mindwell.ai",
@@ -197,7 +199,7 @@ def seed_database() -> None:
         if not user:
             logger.warning(
                 "Creating test user account with weak password - DO NOT USE IN PRODUCTION",
-                email="user@example.com"
+                email="user@example.com",
             )
             user = User(
                 email="user@example.com",

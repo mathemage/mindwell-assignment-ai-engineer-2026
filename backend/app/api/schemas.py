@@ -1,4 +1,5 @@
 """Pydantic schemas for API requests and responses."""
+
 from datetime import datetime
 from typing import Any
 
@@ -75,7 +76,7 @@ class DocumentResponse(BaseModel):
     id: int
     title: str
     source_type: str
-    metadata: dict[str, Any]
+    metadata: dict[str, Any] = Field(validation_alias="document_metadata")
     created_at: datetime
     updated_at: datetime
     num_chunks: int | None = None

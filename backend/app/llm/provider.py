@@ -1,4 +1,5 @@
 """LLM provider interface and implementations."""
+
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -111,22 +112,27 @@ class OpenAIProvider(LLMProvider):
             # Prepend JSON format instruction as system message if not already present
             # or incorporate into user message to avoid appending after user messages
             messages_with_format = messages.copy()
-            
+
             # Check if there's already a system message
             has_system = any(msg.get("role") == "system" for msg in messages_with_format)
-            
+
             if has_system:
                 # Add instruction to the existing system message
                 for msg in messages_with_format:
                     if msg.get("role") == "system":
-                        msg["content"] += f"\n\nRespond with valid JSON matching this schema: {json.dumps(response_format)}"
+                        msg["content"] += (
+                            f"\n\nRespond with valid JSON matching this schema: {json.dumps(response_format)}"
+                        )
                         break
             else:
                 # Prepend as first system message
-                messages_with_format.insert(0, {
-                    "role": "system",
-                    "content": f"Respond with valid JSON matching this schema: {json.dumps(response_format)}",
-                })
+                messages_with_format.insert(
+                    0,
+                    {
+                        "role": "system",
+                        "content": f"Respond with valid JSON matching this schema: {json.dumps(response_format)}",
+                    },
+                )
 
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -143,7 +149,10 @@ class OpenAIProvider(LLMProvider):
                 tokens_used=response.usage.total_tokens if response.usage else 0,
             )
 
-            return json.loads(content)
+            parsed_content = json.loads(content)
+            if not isinstance(parsed_content, dict):
+                raise LLMError("Structured LLM response was not a JSON object")
+            return parsed_content
 
         except Exception as e:
             logger.error("Structured LLM generation failed", error=str(e))

@@ -1,4 +1,5 @@
 """Chat service for managing conversations."""
+
 from datetime import datetime
 from typing import Any
 
@@ -6,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.agents.orchestrator import ChatOrchestrator
 from app.core.logging import get_logger
-from app.core.security import pseudonymize_user_id, redact_pii
+from app.core.security import redact_pii
 from app.db.models import Conversation, Message, SafetyLog
 
 logger = get_logger(__name__)
@@ -35,6 +36,7 @@ class ChatService:
             conversation = Conversation(user_id=user_id)
             self.db.add(conversation)
             self.db.flush()
+        conversation_id = int(conversation.id)
 
         # Redact PII from user message
         redacted_message, pii_detected = redact_pii(message)
@@ -44,23 +46,24 @@ class ChatService:
 
         # Store user message
         user_message = Message(
-            conversation_id=conversation.id,
+            conversation_id=conversation_id,
             role="user",
             content=redacted_message,
-            metadata={"pii_detected": pii_detected},
+            message_metadata={"pii_detected": pii_detected},
         )
         self.db.add(user_message)
         self.db.flush()
+        user_message_id = int(user_message.id)
 
         # Process through agent pipeline
         response_data = self.orchestrator.process_query(redacted_message)
 
         # Store assistant response
         assistant_message = Message(
-            conversation_id=conversation.id,
+            conversation_id=conversation_id,
             role="assistant",
             content=response_data["answer"],
-            metadata={
+            message_metadata={
                 "citations": response_data.get("citations", []),
                 "safety_outcome": response_data.get("safety_outcome", "ok"),
                 "safety_reason": response_data.get("safety_reason", "safe"),
@@ -70,8 +73,8 @@ class ChatService:
 
         # Log safety decision
         safety_log = SafetyLog(
-            conversation_id=conversation.id,
-            message_id=user_message.id,
+            conversation_id=conversation_id,
+            message_id=user_message_id,
             decision=response_data.get("safety_outcome", "ok"),
             reason_code=response_data.get("safety_reason", "safe"),
             details={"query_length": len(message)},
@@ -79,13 +82,15 @@ class ChatService:
         self.db.add(safety_log)
 
         # Update conversation timestamp
-        conversation.updated_at = datetime.utcnow()
+        self.db.query(Conversation).filter(Conversation.id == conversation_id).update(
+            {"updated_at": datetime.utcnow()}
+        )
 
         self.db.commit()
 
         logger.info(
             "Chat message processed",
-            conversation_id=conversation.id,
+            conversation_id=conversation_id,
             safety_outcome=response_data.get("safety_outcome"),
         )
 

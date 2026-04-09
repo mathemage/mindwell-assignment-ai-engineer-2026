@@ -1,5 +1,4 @@
 """Admin document management routes."""
-from typing import Any
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
@@ -8,7 +7,6 @@ from app.api.deps import get_current_admin
 from app.api.schemas import (
     DocumentListResponse,
     DocumentResponse,
-    DocumentUploadRequest,
     ReindexRequest,
     ReindexResponse,
     SuccessResponse,

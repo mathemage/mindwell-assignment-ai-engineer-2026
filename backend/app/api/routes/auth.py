@@ -1,4 +1,5 @@
 """Authentication routes."""
+
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -28,7 +29,17 @@ def login(request: LoginRequest, db: Session = Depends(get_db)) -> LoginResponse
 
     user = db.query(User).filter(User.email == request.email).first()
 
-    if not user or not verify_password(request.password, user.hashed_password):
+    if not user:
+        logger.warning("Login failed", email=request.email)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+        )
+
+    hashed_password = user.hashed_password
+    if not isinstance(hashed_password, str) or not verify_password(
+        request.password, hashed_password
+    ):
         logger.warning("Login failed", email=request.email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

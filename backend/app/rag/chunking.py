@@ -1,4 +1,5 @@
 """Chunking strategies for different document types."""
+
 import re
 from typing import Any
 
@@ -64,9 +65,7 @@ def chunk_markdown(content: str, chunk_size: int, chunk_overlap: int) -> list[Ch
         if match:
             # Save previous section if it exists
             if current_section.strip():
-                section_chunks = _split_by_size(
-                    current_section.strip(), chunk_size, chunk_overlap
-                )
+                section_chunks = _split_by_size(current_section.strip(), chunk_size, chunk_overlap)
                 for text in section_chunks:
                     metadata = ChunkMetadata(section_heading=current_heading)
                     chunks.append(Chunk(text, chunk_index, metadata))
@@ -95,10 +94,7 @@ def chunk_text(content: str, chunk_size: int, chunk_overlap: int) -> list[Chunk]
     logger.info("Chunking text content", content_length=len(content))
 
     text_chunks = _split_by_size(content, chunk_size, chunk_overlap)
-    chunks = [
-        Chunk(text, index, ChunkMetadata())
-        for index, text in enumerate(text_chunks)
-    ]
+    chunks = [Chunk(text, index, ChunkMetadata()) for index, text in enumerate(text_chunks)]
 
     logger.info("Text chunking complete", num_chunks=len(chunks))
     return chunks
