@@ -1,12 +1,13 @@
 """Multi-agent pipeline for processing chat requests."""
+
 from typing import Any
 
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
-from app.llm.prompts import STRUCTURED_RESPONSE_SCHEMA, create_chat_messages
+from app.llm.prompts import create_chat_messages
 from app.llm.provider import get_llm_provider
-from app.rag.retrieval import RetrievalResult, format_context_for_llm, retrieve_relevant_chunks
+from app.rag.retrieval import format_context_for_llm, retrieve_relevant_chunks
 from app.safety.policy import SafetyChecker, SafetyDecision, SafetyResult
 
 logger = get_logger(__name__)
@@ -183,9 +184,7 @@ class ChatOrchestrator:
             }
 
         # Step 3: Draft response
-        draft_result = self.drafter.execute(
-            query, retrieval_result.data["context"]
-        )
+        draft_result = self.drafter.execute(query, retrieval_result.data["context"])
         if not draft_result.success:
             logger.error("Draft failed", error=draft_result.error)
             return {
@@ -204,8 +203,7 @@ class ChatOrchestrator:
                 reason=output_safety.reason_code.value,
             )
             return {
-                "answer": output_safety.override_response
-                or "I cannot provide that information.",
+                "answer": output_safety.override_response or "I cannot provide that information.",
                 "citations": [],
                 "safety_outcome": output_safety.decision.value,
                 "safety_reason": output_safety.reason_code.value,

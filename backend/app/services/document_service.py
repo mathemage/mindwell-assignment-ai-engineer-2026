@@ -1,4 +1,5 @@
 """Document processing service."""
+
 from typing import Any
 
 from pypdf import PdfReader
@@ -33,7 +34,7 @@ class DocumentService:
                 title=title,
                 content=content,
                 source_type=source_type,
-                metadata=metadata or {},
+                document_metadata=metadata or {},
             )
             self.db.add(document)
             self.db.flush()
@@ -48,7 +49,7 @@ class DocumentService:
                     document_id=document.id,
                     chunk_index=chunk.index,
                     text=chunk.text,
-                    metadata=chunk.metadata.to_dict(),
+                    chunk_metadata=chunk.metadata.to_dict(),
                 )
                 self.db.add(chunk_model)
                 self.db.flush()
@@ -87,7 +88,9 @@ class DocumentService:
                     text_parts.append(text)
 
             full_text = "\n\n".join(text_parts)
-            logger.info("PDF text extracted", num_pages=len(reader.pages), text_length=len(full_text))
+            logger.info(
+                "PDF text extracted", num_pages=len(reader.pages), text_length=len(full_text)
+            )
             return full_text
 
         except Exception as e:
@@ -108,14 +111,21 @@ class DocumentService:
             self.db.flush()
 
             # Rechunk and reembed
-            chunks = chunk_document(document.content, document.source_type)
+            document_content = document.content
+            document_source_type = document.source_type
+            if not isinstance(document_content, str) or not isinstance(document_source_type, str):
+                raise DocumentProcessingError(
+                    f"Document {document_id} has invalid content or source type"
+                )
+
+            chunks = chunk_document(document_content, document_source_type)
 
             for chunk in chunks:
                 chunk_model = ChunkModel(
                     document_id=document.id,
                     chunk_index=chunk.index,
                     text=chunk.text,
-                    metadata=chunk.metadata.to_dict(),
+                    chunk_metadata=chunk.metadata.to_dict(),
                 )
                 self.db.add(chunk_model)
                 self.db.flush()

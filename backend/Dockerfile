@@ -9,14 +9,12 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy project files
-COPY pyproject.toml ./
+# Copy project files before installation so editable installs can resolve
+# package metadata and source files during the build.
+COPY . .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -e .[dev]
-
-# Copy application code
-COPY . .
 
 # Run migrations and start server (handled by docker-compose command)
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

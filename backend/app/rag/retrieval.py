@@ -1,13 +1,13 @@
 """Vector-based retrieval using pgvector."""
+
 from typing import Any
 
-from sqlalchemy import select, text
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.errors import RetrievalError
 from app.core.logging import get_logger
-from app.db.models import Chunk, Document, Embedding
 from app.rag.embeddings import generate_query_embedding
 
 logger = get_logger(__name__)
@@ -72,7 +72,7 @@ def retrieve_relevant_chunks(
         # Using 1 - cosine_distance for similarity score
         # Format embedding as PostgreSQL array literal
         embedding_str = "[" + ",".join(str(x) for x in query_embedding) + "]"
-        
+
         query_sql = text(
             """
             SELECT

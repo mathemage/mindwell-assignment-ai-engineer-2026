@@ -1,5 +1,4 @@
 """Authentication and authorization dependencies."""
-from typing import Any
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -41,14 +40,14 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from e
     except Exception as e:
         logger.error("Unexpected error during authentication", error=str(e), exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from e
 
 
 def get_current_admin(current_user: User = Depends(get_current_user)) -> User:

@@ -1,5 +1,4 @@
 """Embedding generation for text chunks."""
-from typing import Any
 
 import openai
 from tenacity import retry, stop_after_attempt, wait_exponential

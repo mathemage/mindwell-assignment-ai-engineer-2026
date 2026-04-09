@@ -1,5 +1,4 @@
 """Test PII detection and redaction."""
-import pytest
 
 from app.core.security import detect_pii, redact_pii
 
@@ -24,6 +23,7 @@ def test_phone_detection():
     for text, expected in test_cases:
         pii = detect_pii(text)
         assert len(pii["phones"]) == 1
+        assert expected in pii["phones"]
 
 
 def test_ssn_detection():

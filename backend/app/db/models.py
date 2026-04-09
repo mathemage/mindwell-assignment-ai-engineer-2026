@@ -1,9 +1,9 @@
 """Database models."""
+
 from datetime import datetime
-from typing import Any
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import JSON, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
@@ -33,7 +33,7 @@ class Document(Base):
     title = Column(String(500), nullable=False)
     source_type = Column(String(50), nullable=False)  # markdown, pdf, text
     content = Column(Text, nullable=False)
-    metadata = Column(JSON, default={})
+    document_metadata = Column("metadata", JSON, default={})
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -49,7 +49,7 @@ class Chunk(Base):
     document_id = Column(Integer, ForeignKey("documents.id", ondelete="CASCADE"), nullable=False)
     chunk_index = Column(Integer, nullable=False)
     text = Column(Text, nullable=False)
-    metadata = Column(JSON, default={})  # section_heading, page_number, etc.
+    chunk_metadata = Column("metadata", JSON, default={})  # section_heading, page_number, etc.
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     document = relationship("Document", back_populates="chunks")
@@ -95,7 +95,7 @@ class Message(Base):
     )
     role = Column(String(20), nullable=False)  # user, assistant, system
     content = Column(Text, nullable=False)
-    metadata = Column(JSON, default={})  # citations, safety_outcome, etc.
+    message_metadata = Column("metadata", JSON, default={})  # citations, safety_outcome, etc.
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     conversation = relationship("Conversation", back_populates="messages")

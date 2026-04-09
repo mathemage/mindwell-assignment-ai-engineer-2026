@@ -1,7 +1,6 @@
 """Test safety policy and crisis detection."""
-import pytest
 
-from app.safety.policy import SafetyChecker, SafetyDecision, ReasonCode
+from app.safety.policy import ReasonCode, SafetyChecker, SafetyDecision
 
 
 def test_suicide_detection():

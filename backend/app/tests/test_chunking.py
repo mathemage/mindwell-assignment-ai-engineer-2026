@@ -1,5 +1,4 @@
 """Test chunking functionality."""
-import pytest
 
 from app.rag.chunking import chunk_document, chunk_markdown, chunk_text
 
@@ -32,7 +31,9 @@ Content under heading 3.
 
     assert len(chunks) > 0
     # Check that section headings are captured in metadata
-    headings = [chunk.metadata.section_heading for chunk in chunks if chunk.metadata.section_heading]
+    headings = [
+        chunk.metadata.section_heading for chunk in chunks if chunk.metadata.section_heading
+    ]
     assert len(headings) > 0
 
 

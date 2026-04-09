@@ -1,4 +1,5 @@
 """Evaluation script for safety policy."""
+
 import sys
 from pathlib import Path
 from typing import Any
@@ -65,7 +66,7 @@ def evaluate_safety() -> dict[str, Any]:
     accuracy = correct_decisions / total if total > 0 else 0
 
     # Category-specific metrics
-    categories = set(item["category"] for item in SAFETY_EVAL_DATASET)
+    categories = {item["category"] for item in SAFETY_EVAL_DATASET}
     category_metrics = {}
 
     for cat in categories:
@@ -119,7 +120,7 @@ def print_report(metrics: dict[str, Any]) -> None:
         print(f"  Expected: {result['expected_decision']} ({result['expected_reason']})")
         print(f"  Actual: {result['actual_decision']} ({result['actual_reason']})")
         if not result["decision_correct"] or not result["reason_correct"]:
-            print(f"  ⚠️  Mismatch detected!")
+            print("  ⚠️  Mismatch detected!")
 
     print("\n" + "=" * 50)
 

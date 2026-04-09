@@ -1,6 +1,7 @@
 """Safety policy and crisis detection."""
+
 import re
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from app.core.logging import get_logger
@@ -8,7 +9,7 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 
-class SafetyDecision(str, Enum):
+class SafetyDecision(StrEnum):
     """Safety decision outcomes."""
 
     OK = "ok"
@@ -16,7 +17,7 @@ class SafetyDecision(str, Enum):
     ESCALATED = "escalated"
 
 
-class ReasonCode(str, Enum):
+class ReasonCode(StrEnum):
     """Reason codes for safety decisions."""
 
     SAFE = "safe"
@@ -60,7 +61,7 @@ SUICIDE_PATTERNS = [
 ]
 
 SELF_HARM_PATTERNS = [
-    r"\b(cut myself|cutting|self[- ]harm|hurt myself)\b",
+    r"\b(cut myself|cutting|self[- ]harm(?:ing)?|hurt myself)\b",
     r"\b(burning myself|hitting myself)\b",
 ]
 
@@ -70,7 +71,7 @@ CRISIS_PATTERNS = [
 ]
 
 MEDICAL_ADVICE_PATTERNS = [
-    r"\b(should i take|prescribe|medication for|drug for|diagnose)\b",
+    r"\b(should i take|you should take|prescribe|medication for|drug for|diagnose)\b",
     r"\b(what medicine|which pill|medical advice)\b",
     r"\b(stop taking|start taking).*\b(medication|medicine|drug)\b",
 ]

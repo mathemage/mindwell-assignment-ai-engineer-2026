@@ -1,4 +1,5 @@
 """Core configuration management."""
+
 from functools import lru_cache
 from typing import Literal
 
@@ -17,12 +18,10 @@ class Settings(BaseSettings):
     )
 
     # Environment
-    environment: Literal["development", "staging", "production"] = "development"
+    environment: Literal["development", "staging", "production", "testing"] = "development"
 
     # Database
-    database_url: str = Field(
-        default="postgresql+psycopg://user:password@localhost:5432/dbname"
-    )
+    database_url: str = Field(default="postgresql+psycopg://user:password@localhost:5432/dbname")
 
     # OpenAI
     openai_api_key: str = Field(default="")
@@ -60,7 +59,7 @@ class Settings(BaseSettings):
     # CORS Settings
     cors_origins: str = Field(
         default="*",
-        description="Comma-separated list of allowed CORS origins. Use * for development only."
+        description="Comma-separated list of allowed CORS origins. Use * for development only.",
     )
 
     @property

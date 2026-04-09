@@ -1,4 +1,5 @@
 """Evaluation metrics for retrieval quality."""
+
 import sys
 from pathlib import Path
 from typing import Any
@@ -114,7 +115,9 @@ def print_report(metrics: dict[str, Any]) -> None:
         print(f"Category: {result['category']}")
         print(f"Expected: {', '.join(result['expected_titles'])}")
         print(f"Retrieved: {', '.join(result['retrieved_titles'][:3])}")
-        print(f"Hit@1: {result['hit_at_1']}, Hit@3: {result['hit_at_3']}, Hit@5: {result['hit_at_5']}")
+        print(
+            f"Hit@1: {result['hit_at_1']}, Hit@3: {result['hit_at_3']}, Hit@5: {result['hit_at_5']}"
+        )
 
     print("\n" + "=" * 50)
 

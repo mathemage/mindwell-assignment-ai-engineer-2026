@@ -1,4 +1,5 @@
 """Chat API routes."""
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -23,7 +24,7 @@ def chat(
     logger.info("Chat request", user_id=current_user.id, message_length=len(request.message))
 
     chat_service = ChatService(db)
-    response_data = chat_service.process_message(current_user.id, request.message)
+    response_data = chat_service.process_message(int(current_user.id), request.message)
 
     # Convert to response model
     citations = [Citation(**citation) for citation in response_data.get("citations", [])]
